@@ -1,0 +1,32 @@
+{
+  "name": "safe-wallet-example",
+  "version": "1.0.0",
+  "description": "Safe (Account Abstraction) example using MetaMask as a signer",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-esm src/node-example.ts",
+    "start": "node dist/node-example.js",
+    "send": "ts-node-esm src/send-transaction.ts"
+  },
+  "keywords": [
+    "safe",
+    "account-abstraction",
+    "metamask",
+    "ethereum",
+    "web3"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@safe-global/protocol-kit": "^4.1.0",
+    "@safe-global/api-kit": "^2.4.0",
+    "ethers": "^6.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0",
+    "ts-node": "^10.9.2"
+  }
+}
