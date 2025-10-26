@@ -1,0 +1,41 @@
+{
+  "name": "safe-wallet-example",
+  "version": "1.0.0",
+  "description": "Safe (Account Abstraction) example using MetaMask as a signer",
+  "type": "module",
+  "scripts": {
+    "dev:web": "vite",
+    "build:web": "tsc -p tsconfig.web.json && vite build",
+    "preview": "vite preview",
+    "dev:cli": "ts-node-esm cli/node-example.ts",
+    "start:cli": "node dist/cli/node-example.js",
+    "send": "ts-node-esm cli/send-transaction.ts",
+    "build:cli": "tsc -p tsconfig.cli.json"
+  },
+  "keywords": [
+    "safe",
+    "account-abstraction",
+    "metamask",
+    "ethereum",
+    "web3",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@safe-global/protocol-kit": "^4.1.0",
+    "@safe-global/api-kit": "^2.4.0",
+    "ethers": "^6.13.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.5.0",
+    "ts-node": "^10.9.2",
+    "vite": "^5.3.0"
+  }
+}
