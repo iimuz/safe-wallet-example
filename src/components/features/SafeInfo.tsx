@@ -1,29 +1,31 @@
-import { useSafe } from '@/hooks/useSafe';
+import { useSafeContext } from '@/hooks/useSafeContext';
+import { Card, Button, Address } from '@/components/common';
 
 export function SafeInfo() {
-  const { safeInfo, isLoading, refreshSafeInfo } = useSafe();
+  const { safeInfo, isLoading, refreshSafeInfo } = useSafeContext();
 
   if (!safeInfo) {
     return null;
   }
 
   return (
-    <div className="card safe-info">
-      <div className="card-header">
-        <h2>Safe Information</h2>
-        <button
+    <Card
+      title="Safe Information"
+      action={
+        <Button
+          size="small"
+          variant="ghost"
           onClick={refreshSafeInfo}
-          disabled={isLoading}
-          className="btn btn-small"
+          isLoading={isLoading}
         >
-          {isLoading ? 'Refreshing...' : 'Refresh'}
-        </button>
-      </div>
-
+          {isLoading ? 'Refreshing...' : '🔄 Refresh'}
+        </Button>
+      }
+    >
       <div className="info-section">
         <div className="info-row">
           <span className="label">Safe Address:</span>
-          <span className="value address">{safeInfo.address}</span>
+          <Address value={safeInfo.address} />
         </div>
 
         <div className="info-row">
@@ -50,11 +52,11 @@ export function SafeInfo() {
           {safeInfo.owners.map((owner, index) => (
             <li key={owner}>
               <span className="owner-index">{index + 1}.</span>
-              <span className="address">{owner}</span>
+              <Address value={owner} short />
             </li>
           ))}
         </ul>
       </div>
-    </div>
+    </Card>
   );
 }

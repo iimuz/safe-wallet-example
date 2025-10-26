@@ -1,16 +1,18 @@
-import { useSafe } from '@/hooks/useSafe';
+import { useSafeContext } from '@/hooks/useSafeContext';
+import { Button, Address } from '@/components/common';
 
 export function WalletConnect() {
-  const { walletInfo, isConnected, isLoading, connectWallet, disconnect } = useSafe();
+  const { walletInfo, isWalletConnected, isLoading, connectWallet, disconnectWallet } =
+    useSafeContext();
 
-  if (isConnected && walletInfo) {
+  if (isWalletConnected && walletInfo) {
     return (
       <div className="wallet-info">
         <div className="wallet-details">
           <h3>Connected Wallet</h3>
           <div className="info-row">
             <span className="label">Address:</span>
-            <span className="value address">{walletInfo.address}</span>
+            <Address value={walletInfo.address} short />
           </div>
           <div className="info-row">
             <span className="label">Balance:</span>
@@ -23,9 +25,9 @@ export function WalletConnect() {
             </span>
           </div>
         </div>
-        <button onClick={disconnect} className="btn btn-secondary">
+        <Button variant="secondary" onClick={disconnectWallet}>
           Disconnect
-        </button>
+        </Button>
       </div>
     );
   }
@@ -34,13 +36,9 @@ export function WalletConnect() {
     <div className="wallet-connect">
       <h3>Connect Your Wallet</h3>
       <p>Connect MetaMask to get started with Safe Account Abstraction</p>
-      <button
-        onClick={connectWallet}
-        disabled={isLoading}
-        className="btn btn-primary"
-      >
-        {isLoading ? 'Connecting...' : 'Connect MetaMask'}
-      </button>
+      <Button onClick={connectWallet} isLoading={isLoading}>
+        Connect MetaMask
+      </Button>
     </div>
   );
 }
