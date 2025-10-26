@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Account Abstraction - MetaMask Example</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #12ff80;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #12ff80;
+            padding-bottom: 10px;
+        }
+        button {
+            background-color: #12ff80;
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0ecc66;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .output {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Safe Account Abstraction Example</h1>
+        <h2>Create Safe with MetaMask (1 Signer)</h2>
+
+        <div class="info">
+            <strong>Prerequisites:</strong>
+            <ul>
+                <li>MetaMask extension installed</li>
+                <li>Connected to a supported network (Sepolia testnet recommended)</li>
+                <li>Have some ETH for gas fees</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <strong>Note:</strong> This example uses Safe Protocol Kit to create a Safe account with 1 owner and a threshold of 1,
+            meaning only one signature is required to execute transactions.
+        </div>
+
+        <div style="margin: 20px 0;">
+            <button id="createSafeBtn" onclick="createSafe()">Create New Safe Account</button>
+        </div>
+
+        <h2>Connect to Existing Safe</h2>
+        <div class="input-group">
+            <label for="safeAddress">Safe Address:</label>
+            <input type="text" id="safeAddress" placeholder="0x..." />
+        </div>
+        <button onclick="connectExistingSafe()">Connect to Safe</button>
+        <button onclick="showSafeInfo()">Show Safe Info</button>
+
+        <h2>Output</h2>
+        <div id="output" class="output">Waiting for action...</div>
+    </div>
+
+    <script type="module">
+        import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@6.13.0/+esm';
+        import Safe, { SafeFactory } from 'https://cdn.jsdelivr.net/npm/@safe-global/protocol-kit@4.1.0/+esm';
+        import { EthersAdapter } from 'https://cdn.jsdelivr.net/npm/@safe-global/protocol-kit@4.1.0/+esm';
+
+        let currentSafeSdk = null;
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            output.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').textContent = '';
+        }
+
+        async function createSafe() {
+            clearOutput();
+            const btn = document.getElementById('createSafeBtn');
+            btn.disabled = true;
+
+            try {
+                if (!window.ethereum) {
+                    throw new Error('MetaMask is not installed. Please install MetaMask extension.');
+                }
+
+                log('Connecting to MetaMask...');
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                const signerAddress = await signer.getAddress();
+                const network = await provider.getNetwork();
+
+                log(`Connected to account: ${signerAddress}`);
+                log(`Network: ${network.name} (Chain ID: ${network.chainId})`);
+
+                log('Creating EthersAdapter...');
+                const ethAdapter = new EthersAdapter({
+                    ethers,
+                    signerOrProvider: signer,
+                });
+
+                log('Creating Safe Factory...');
+                const safeFactory = await SafeFactory.create({ ethAdapter });
+
+                const safeAccountConfig = {
+                    owners: [signerAddress],
+                    threshold: 1,
+                };
+
+                log('Deploying Safe account...');
+                log(`Configuration: 1 owner (${signerAddress}), threshold: 1/1`);
+
+                currentSafeSdk = await safeFactory.deploySafe({ safeAccountConfig });
+                const safeAddress = await currentSafeSdk.getAddress();
+
+                log(`Safe deployed successfully!`, 'success');
+                log(`Safe Address: ${safeAddress}`, 'success');
+                log(`Owner: ${signerAddress}`, 'success');
+                log(`Threshold: 1/1`, 'success');
+
+                document.getElementById('safeAddress').value = safeAddress;
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                console.error('Detailed error:', error);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function connectExistingSafe() {
+            clearOutput();
+            const safeAddress = document.getElementById('safeAddress').value;
+
+            if (!safeAddress) {
+                log('Please enter a Safe address', 'error');
+                return;
+            }
+
+            try {
+                if (!window.ethereum) {
+                    throw new Error('MetaMask is not installed.');
+                }
+
+                log('Connecting to MetaMask...');
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+
+                const ethAdapter = new EthersAdapter({
+                    ethers,
+                    signerOrProvider: signer,
+                });
+
+                log(`Connecting to Safe at: ${safeAddress}...`);
+                currentSafeSdk = await Safe.create({
+                    ethAdapter,
+                    safeAddress,
+                });
+
+                const owners = await currentSafeSdk.getOwners();
+                const threshold = await currentSafeSdk.getThreshold();
+
+                log('Connected to Safe successfully!', 'success');
+                log(`Owners (${owners.length}): ${owners.join(', ')}`, 'success');
+                log(`Threshold: ${threshold}/${owners.length}`, 'success');
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                console.error('Detailed error:', error);
+            }
+        }
+
+        async function showSafeInfo() {
+            if (!currentSafeSdk) {
+                log('Please create or connect to a Safe first', 'error');
+                return;
+            }
+
+            try {
+                log('Fetching Safe information...');
+
+                const safeAddress = await currentSafeSdk.getAddress();
+                const owners = await currentSafeSdk.getOwners();
+                const threshold = await currentSafeSdk.getThreshold();
+                const nonce = await currentSafeSdk.getNonce();
+                const balance = await currentSafeSdk.getBalance();
+
+                log('=== Safe Information ===', 'success');
+                log(`Address: ${safeAddress}`);
+                log(`Owners (${owners.length}):`);
+                owners.forEach((owner, index) => {
+                    log(`  ${index + 1}. ${owner}`);
+                });
+                log(`Threshold: ${threshold}/${owners.length}`);
+                log(`Nonce: ${nonce}`);
+                log(`Balance: ${ethers.formatEther(balance)} ETH`);
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                console.error('Detailed error:', error);
+            }
+        }
+
+        // Expose functions globally
+        window.createSafe = createSafe;
+        window.connectExistingSafe = connectExistingSafe;
+        window.showSafeInfo = showSafeInfo;
+    </script>
+</body>
+</html>

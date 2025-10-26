@@ -6,14 +6,22 @@ Safe（旧 Gnosis Safe）を使用したAccount Abstraction（AA）のサンプ�
 
 このリポジトリには、Safe Protocol Kitを使用した以下のサンプルが含まれています：
 
-- **ブラウザ版**: MetaMaskを使用してSafeアカウントを作成するWebアプリケーション
-- **Node.js版**: プライベートキーを使用してSafeアカウントを作成・管理するCLIツール
-- **トランザクション実行**: Safeアカウントからトランザクションを送信する例
+- **React Webアプリ**: React + TypeScript + Viteで構築されたモダンなWebアプリケーション
+- **CLI版**: プライベートキーを使用してSafeアカウントを作成・管理するNode.jsツール
+
+## ✨ 主な機能
+
+- MetaMaskとの統合（1 owner, threshold: 1/1）
+- Safeアカウントの作成とデプロイ
+- 既存のSafeアカウントへの接続
+- Safeアカウント情報の表示
+- トランザクションの作成・署名・実行
+- レスポンシブなUIデザイン
 
 ## 🔧 必要な環境
 
 - Node.js 18以上
-- MetaMask拡張機能（ブラウザ版の場合）
+- MetaMask拡張機能（Webアプリ版の場合）
 - テストネットのETH（Sepoliaを推奨）
 
 ## 📦 インストール
@@ -29,25 +37,30 @@ npm install
 
 ## 🚀 使い方
 
-### 1. ブラウザ版（MetaMaskを使用）
+### 1. React Webアプリ（推奨）
 
-1. `index.html`をブラウザで開く
+開発サーバーを起動:
 
 ```bash
-# シンプルなHTTPサーバーを起動
-npx http-server -p 8080
+npm run dev:web
 ```
 
-2. ブラウザで `http://localhost:8080` にアクセス
-3. MetaMaskを接続
-4. 「Create New Safe Account」ボタンをクリック
+ブラウザで `http://localhost:5173` にアクセスして、以下の操作ができます：
 
-**機能:**
-- Safeアカウントの作成（1 owner, threshold: 1/1）
-- 既存のSafeアカウントへの接続
-- Safeアカウント情報の表示
+1. **ウォレット接続**: MetaMaskを接続
+2. **Safe作成**: 新しいSafeアカウントを作成
+3. **Safe接続**: 既存のSafeアカウントに接続
+4. **情報表示**: Safeのバランス、オーナー、閾値を表示
+5. **トランザクション送信**: Safeからトランザクションを実行
 
-### 2. Node.js版（プライベートキーを使用）
+プロダクションビルド:
+
+```bash
+npm run build:web
+npm run preview
+```
+
+### 2. CLI版（Node.js）
 
 #### 環境変数の設定
 
@@ -69,32 +82,21 @@ RPC_URL=https://rpc.sepolia.org
 
 ```bash
 # TypeScriptを直接実行
-PRIVATE_KEY=0x... RPC_URL=https://rpc.sepolia.org npm run dev
+PRIVATE_KEY=0x... RPC_URL=https://rpc.sepolia.org npm run dev:cli
 
 # またはビルドしてから実行
-npm run build
-PRIVATE_KEY=0x... RPC_URL=https://rpc.sepolia.org npm start
+npm run build:cli
+PRIVATE_KEY=0x... RPC_URL=https://rpc.sepolia.org npm run start:cli
 ```
 
 #### 既存のSafeに接続
 
 ```bash
-npm run dev connect 0xYourSafeAddress
+npm run dev:cli connect 0xYourSafeAddress
 ```
 
 #### トランザクションの送信
 
-`package.json`にスクリプトを追加してください:
-
-```json
-{
-  "scripts": {
-    "send": "ts-node-esm src/send-transaction.ts"
-  }
-}
-```
-
-実行:
 ```bash
 PRIVATE_KEY=0x... npm run send 0xSafeAddress 0xDestinationAddress 0.1
 ```
@@ -195,14 +197,32 @@ await txResponse.transactionResponse?.wait();
 
 ```
 safe-wallet-example/
-├── src/
-│   ├── createSafe.ts          # Safeアカウント作成（ブラウザ用）
+├── src/                        # React Webアプリ
+│   ├── components/            # Reactコンポーネント
+│   │   ├── WalletConnect.tsx  # ウォレット接続
+│   │   ├── CreateSafe.tsx     # Safe作成
+│   │   ├── ConnectSafe.tsx    # Safe接続
+│   │   ├── SafeInfo.tsx       # Safe情報表示
+│   │   └── SendTransaction.tsx # トランザクション送信
+│   ├── hooks/                 # カスタムフック
+│   │   └── useSafe.tsx        # Safe操作のContext & Hook
+│   ├── utils/                 # ユーティリティ関数
+│   │   └── safe.ts            # Safe SDK操作
+│   ├── types/                 # 型定義
+│   │   └── safe.ts            # Safe関連の型
+│   ├── App.tsx                # メインアプリ
+│   ├── App.css                # スタイル
+│   ├── main.tsx               # エントリーポイント
+│   └── index.css              # グローバルスタイル
+├── cli/                        # CLIツール（旧src/）
 │   ├── node-example.ts        # Node.js版のサンプル
-│   └── send-transaction.ts    # トランザクション送信のサンプル
-├── index.html                  # ブラウザ版のUI
+│   └── send-transaction.ts    # トランザクション送信
+├── index.html                  # React用のHTML
+├── vite.config.ts             # Vite設定
 ├── package.json
-├── tsconfig.json
-├── .env.example               # 環境変数のテンプレート
+├── tsconfig.json              # Web用TypeScript設定
+├── tsconfig.cli.json          # CLI用TypeScript設定
+├── .env.example               # 環境変数テンプレート
 └── README.md
 ```
 
